@@ -1,3 +1,4 @@
+import uuid
 import unittest
 import base64
 
@@ -28,11 +29,24 @@ def get_survey_mock(url, request):
     return '{"code": "200", "url": "https://cz2pj.enketo.org/webform"}'
 
 
+@urlmatch(netloc=r'(.*\.)?test.enketo\.org$', path='/api_v1/instance')
+def get_edit_url_mock(url, request):
+    # if the token is not valid, return a 401
+    token_valid, response = check_token(request)
+    if not token_valid:
+        return response
+
+    return {
+        'status_code': 201,
+        'content': '{"code": "201", "edit_url": "https://cz2pj-0.enketo.org/webform/edit?instance_id=2"}'
+    }
+
+
 class TestPyEnketo(unittest.TestCase):
     def test_get_survey_url(self):
         enketo = Enketo()
         enketo.configure(
-            ENKETO_API_URL='https://test.enketo.org/', API_TOKEN='abc')
+            ENKETO_URL='https://test.enketo.org/', API_TOKEN='abc')
 
         with HTTMock(get_survey_mock):
             url = enketo.get_survey_url(
@@ -50,5 +64,17 @@ class TestPyEnketo(unittest.TestCase):
                 'https://testserver.com/notexist',
                 'widgets')
 
-
-
+    def test_get_edit_url(self):
+        enketo = Enketo()
+        enketo.configure(
+            ENKETO_URL='https://test.enketo.org/', API_TOKEN='abc')
+        xml_instance = '<?xml version=\'1.0\' ?><clinic_registration id="clinic_registration"><formhub><uuid>73242968f5754dc49c38463af658f3d2</uuid></formhub><user_id>0</user_id><clinic_name>Test clinic</clinic_name><meta><instanceID>uuid:ec5ce15e-5a0a-4246-93fe-acf60ef69bf2</instanceID></meta></clinic_registration>'
+        instance_id = uuid.uuid4()
+        return_url = 'https://testserver.com/bob/1'
+        with HTTMock(get_edit_url_mock):
+            enketo.get_edit_url(
+                'https://testserver.com/bob',
+                'widgets',
+                xml_instance,
+                instance_id,
+                return_url)

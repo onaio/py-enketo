@@ -59,13 +59,15 @@ def exception_for_response_code(status_code):
 
 
 class Enketo(object):
-    ENKETO_URL = 'https://enketo.org/api_v1'
+    ENKETO_URL = 'https://enketo.org'
     API_PATH = '/api_v1'
     SURVEY_PATH = '/survey'
+    INSTANCE_PATH = '/instance'
     API_TOKEN = None
 
-    def configure(self, *args, **kwargs):
-        self.__dict__.update(kwargs)
+    def configure(self, ENKETO_URL, API_TOKEN):
+        self.ENKETO_URL = ENKETO_URL
+        self.API_TOKEN = API_TOKEN
 
     def get_survey_url(self, server_url, form_id):
         payload = {'server_url': server_url, 'form_id': form_id}
@@ -81,3 +83,25 @@ class Enketo(object):
                 response.status_code, content['message'])
         else:
             return content['url']
+
+    def get_edit_url(
+            self, server_url, form_id, xml_instance, instance_id, return_url):
+        payload = {
+            'server_url': server_url,
+            'form_id': form_id,
+            'instance': xml_instance,
+            'instance_id': instance_id,
+            'return_url': return_url
+        }
+        response = requests.post(
+            urljoin(
+                self.ENKETO_URL,
+                "{}{}".format(self.API_PATH, self.INSTANCE_PATH)),
+            auth=(self.API_TOKEN, ''),
+            data=payload)
+        content = json.loads(response.content)
+        if response.status_code != 201:
+            raise exception_for_response_code(response.status_code)(
+                response.status_code, content['message'])
+        else:
+            return content['edit_url']
