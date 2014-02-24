@@ -1,6 +1,7 @@
 import uuid
 import unittest
 import base64
+import urlparse
 
 from httmock import urlmatch, HTTMock
 from pyenketo import Enketo, Http404
@@ -25,6 +26,16 @@ def get_survey_mock(url, request):
     token_valid, response = check_token(request)
     if not token_valid:
         return response
+
+    # check for non-existent survey
+    server_url = urlparse.unquote(urlparse.urlparse(url.query).path)
+    path = urlparse.urlparse(
+        dict(urlparse.parse_qsl(server_url))['server_url']).path
+    if path == '/notexist':
+        return {
+            'status_code': 404,
+            'content': '{"message": "Form does not exist"}'
+        }
 
     return '{"code": "200", "url": "https://cz2pj.enketo.org/webform"}'
 
@@ -56,7 +67,7 @@ class TestPyEnketo(unittest.TestCase):
     def test_get_survey_notexist(self):
         enketo = Enketo()
         enketo.configure(
-            ENKETO_API_URL='https://enketo.org/', API_TOKEN='abc')
+            ENKETO_URL='https://test.enketo.org/', API_TOKEN='abc')
         with HTTMock(get_survey_mock):
             self.assertRaises(
                 Http404,
