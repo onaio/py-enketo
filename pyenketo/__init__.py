@@ -3,39 +3,39 @@ import json
 from urlparse import urljoin
 
 
-class PyEnketoException(Exception):
+class EnketoException(Exception):
     def __init__(self, code, message):
         self.code = code
         self.message = message
 
 
-class Http400(PyEnketoException):
+class Http400(EnketoException):
     code = 400
     message = "bad request"
 
 
-class Http401(PyEnketoException):
+class Http401(EnketoException):
     code = 401
     message = "Access denied: invalid authentication token."
 
 
-class Http403(PyEnketoException):
+class Http403(EnketoException):
     code = 403
     message = "Authentication succeeded but account inactive or quota filled" \
               " up."
 
 
-class Http404(PyEnketoException):
+class Http404(EnketoException):
     code = 404
     message = "Resource was not found in the database"
 
 
-class Http405(PyEnketoException):
+class Http405(EnketoException):
     code = 405
     message = "Request not allowed"
 
 
-class Http410(PyEnketoException):
+class Http410(EnketoException):
     code = 410
     message = "Endpoint deprecated"
 
@@ -58,10 +58,11 @@ def exception_for_response_code(status_code):
     return klass
 
 
-class PyEnketo(object):
+class Enketo(object):
     ENKETO_URL = 'https://enketo.org/api_v1'
     API_PATH = '/api_v1'
     SURVEY_PATH = '/survey'
+    API_TOKEN = None
 
     def configure(self, *args, **kwargs):
         self.__dict__.update(kwargs)
@@ -72,7 +73,7 @@ class PyEnketo(object):
             urljoin(
                 self.ENKETO_URL,
                 "{}{}".format(self.API_PATH, self.SURVEY_PATH)),
-            auth=('abc', ''),
+            auth=(self.API_TOKEN, ''),
             params=payload)
         content = json.loads(response.content)
         if response.status_code != 200:
