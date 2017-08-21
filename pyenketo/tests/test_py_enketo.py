@@ -20,7 +20,7 @@ def check_token(request):
         return True, None
 
 
-@urlmatch(netloc=r'(.*\.)?test.enketo\.org$', path='/api_v1/survey')
+@urlmatch(netloc=r'(.*\.)?test.enketo\.org$', path='/api_v2/survey')
 def get_survey_mock(url, request):
     # if the token is not valid, return a 401
     token_valid, response = check_token(request)
@@ -40,7 +40,7 @@ def get_survey_mock(url, request):
     return '{"code": "200", "url": "https://cz2pj.enketo.org/webform"}'
 
 
-@urlmatch(netloc=r'(.*\.)?test.enketo\.org$', path='/api_v1/instance')
+@urlmatch(netloc=r'(.*\.)?test.enketo\.org$', path='/api_v2/instance')
 def get_edit_url_mock(url, request):
     # if the token is not valid, return a 401
     token_valid, response = check_token(request)

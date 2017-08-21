@@ -59,8 +59,8 @@ def exception_for_response_code(status_code):
 
 
 class Enketo(object):
-    ENKETO_URL = 'https://enketo.org'
-    API_PATH = '/api_v1'
+    ENKETO_URL = 'https://enketo.ona.io'
+    API_PATH = '/api_v2'
     SURVEY_PATH = '/survey'
     INSTANCE_PATH = '/instance'
     API_TOKEN = None
